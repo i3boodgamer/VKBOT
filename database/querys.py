@@ -1,7 +1,7 @@
 import datetime
 import logging
 
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.orm import Session
 
 from .models import VKUser, VKUserPromocode, VKUserNumber
@@ -95,11 +95,11 @@ def add_number(session: Session ,user_id: int, number: int):
         log.info(f"Данные не коретны. Ошибка {e}")
 
 
-def get_user_number(session: Session, number: int):
+def get_user_number(session: Session, user_id: int, number: int):
     try:
         user_number = session.execute(
             select(VKUserNumber.number)
-            .filter(VKUserNumber.number == number)
+            .filter(or_(VKUserNumber.number == number, VKUserNumber.id_user == user_id))
             ).scalars().one_or_none()
         
         return user_number

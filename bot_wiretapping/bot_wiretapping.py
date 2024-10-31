@@ -140,16 +140,27 @@ def main():
                 with session() as session_:
                     if get_user_table(session=session_, user_id=user_id) is None:
                         add_user_table(session=session_, user_id=user_id, name=get_user_name(event.user_id))
-                send_message(user_id, "Поделитесь своим номером телефона в формате - 79991112233")
+                send_message(
+                    user_id, 
+                    f"Привет, {get_user_name(event.user_id)}! Для начисления депозита"
+                    " поделись своим номером телефона в формате 799911112233, это будет твой логин в клубе!\n\n" \
+                    "На ваш баланс начислено 300р! Следи за новостями в группе чтобы не пропустить дату открытия!",
+                )
             elif is_valid_phone_number(message):
                 with session() as session_:
-                    if get_user_number(session=session_, number=int(message)) is None:
+                    if get_user_number(session=session_, user_id=user_id, number=int(message)) is None:
                         add_number(session=session_, user_id=user_id, number=int(message))
-                        send_message(user_id, "Мы запомнили ваш номер телефона!")
+                        send_message(
+                            user_id, 
+                            "Мы запомнили ваш номер телефона!",
+                        )
                     else:
-                        send_message(user_id, "Вы уже ввели этот номер телефона.")
+                        send_message(
+                            user_id, 
+                            "На Ваш баланс уже зачислено 300р."
+                            )
             elif message.isdigit() and (len(message) >= 7 and len(message)<=10):
-                send_message(user_id, "Формат вашего номера не верный!")
+                send_message(user_id, "Не верный формат номера телефона!")
 
 
 if __name__ == "__main__":
