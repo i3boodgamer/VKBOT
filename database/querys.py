@@ -95,7 +95,7 @@ def add_number(session: Session ,user_id: int, number: int):
         log.info(f"Данные не коретны. Ошибка {e}")
 
 
-def get_user_number(session: Session, user_id: int, number: int):
+def get_user_number(session: Session, user_id: int, number: int | None = None):
     try:
         user_number = session.execute(
             select(VKUserNumber.number)

@@ -22,7 +22,7 @@ from database.querys import (
     mute_bot,
     unmute_bot,
     is_mute_bot,
-    get_user_number
+    get_user_number,
 )
 from database.engine import session
 from utils.valid_phone_number import is_valid_phone_number
@@ -138,27 +138,32 @@ def main():
             
             if message == "получить":
                 with session() as session_:
-                    if get_user_table(session=session_, user_id=user_id) is None:
-                        add_user_table(session=session_, user_id=user_id, name=get_user_name(event.user_id))
-                send_message(
-                    user_id, 
-                    f"Привет, {get_user_name(event.user_id)}! Для начисления депозита"
-                    " поделись своим номером телефона в формате 799911112233, это будет твой логин в клубе!\n\n" \
-                    "На ваш баланс начислено 300р! Следи за новостями в группе чтобы не пропустить дату открытия!",
-                )
+                    if get_user_number(session=session_, user_id=user_id) is None:
+                        if get_user_table(session=session_, user_id=user_id) is None:
+                            add_user_table(session=session_, user_id=user_id, name=get_user_name(event.user_id))
+                        send_message(
+                            user_id, 
+                            f"Привет, {get_user_name(event.user_id)}! Для начисления депозита"
+                            " поделись своим номером телефона в формате 799911112233, это будет твой логин в клубе!\n\n",
+                        )
+                    else:
+                        send_message(
+                            user_id,
+                            "На Ваш баланс уже зачислено 300р."
+                        )
             elif is_valid_phone_number(message):
                 with session() as session_:
                     if get_user_number(session=session_, user_id=user_id, number=int(message)) is None:
                         add_number(session=session_, user_id=user_id, number=int(message))
                         send_message(
                             user_id, 
-                            "Мы запомнили ваш номер телефона!",
+                            "На ваш баланс начислено 300р! Следи за новостями в группе чтобы не пропустить дату открытия!",
                         )
                     else:
                         send_message(
                             user_id, 
-                            "На Ваш баланс уже зачислено 300р."
-                            )
+                            "На Ваш баланс уже зачислено 300р.",
+                        )
             elif message.isdigit() and (len(message) >= 7 and len(message)<=10):
                 send_message(user_id, "Не верный формат номера телефона!")
 
