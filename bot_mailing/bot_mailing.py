@@ -9,10 +9,11 @@ from datetime import datetime
 import vk_api
 from vk_api.longpoll import VkLongPoll
 
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 load_dotenv(dotenv_path="../.env")
 
+from database.engine import session
+from database.querys import is_mute_bot
 from config import config
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -76,17 +77,19 @@ def send_broadcast_message(user_ids, photo_path: str):
     attachment = upload_photo_to_vk(photo_path)
     for user_id in user_ids:
         try:
-            if get_citi_year(user_id) == 'Новокузнецк' and get_user_year(user_id) <= 20:
-                vk.messages.send(
-                    user_id=user_id,
-                    message=f"Привет, {vk.users.get(user_ids=user_id)[0]['first_name']}! Ты получил сообщение рассылку!",
-                    attachment=attachment,
-                    random_id=vk_api.utils.get_random_id()
-                )
-                time.sleep(0.05)
-                log.info(f"Cообщение отправлено пользоателя, {user_id}")
-            else:
-                log.info(f"Пользователя {user_id} не подходит под условие")
+            with session() as session_:
+                if is_mute_bot(session=session_, user_id=user_id) == False:
+                    if get_citi_year(user_id) == 'Новокузнецк' and get_user_year(user_id) <= 20:
+                        vk.messages.send(
+                            user_id=user_id,
+                            message=f"Привет, {vk.users.get(user_ids=user_id)[0]['first_name']}! Ты получил сообщение рассылку!",
+                            attachment=attachment,
+                            random_id=vk_api.utils.get_random_id()
+                        )
+                        time.sleep(0.05)
+                        log.info(f"Cообщение отправлено пользоателя, {user_id}")
+                    else:
+                        log.info(f"Пользователя {user_id} не подходит под условие")
         except vk_api.exceptions.ApiError as e:
             log.info(f"Ошибка при отправке пользователю {user_id}: {e}")
 

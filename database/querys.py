@@ -4,27 +4,27 @@ import logging
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .models import VKUser, VKUserPromocode
+from .models import VKUser, VKUserPromocode, VKUserNumber
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 log = logging.getLogger(__name__)
 
 
-def get_user_table(session: Session, user_id: int):
+def get_user_table(session: Session, user_id: int) -> int:
     stmt = session.execute(
         select(VKUser.vk_id)
         .where(VKUser.vk_id == user_id)
     )
-    return stmt.scalars().all()
+    return stmt.scalars().one_or_none()
 
 
-def get_user_table_promocode(session: Session, user_id: int):
+def get_user_table_promocode(session: Session, user_id: int) -> int:
     stmt = session.execute(
         select(VKUserPromocode.vk_id)
         .where(VKUserPromocode.vk_id == user_id)
     )
-    return stmt.scalars().all()
+    return stmt.scalars().one_or_none()
 
 
 def add_user_table_promocode(session: Session, user_id: int):
@@ -47,17 +47,73 @@ def del_user_table(session: Session, user_id):
         session.commit()
 
 
-def add_user_table(session: Session, user_id):
+def add_user_table(session: Session, user_id, name: str):
     try:
         user = VKUser(
             vk_id=user_id,
-            created_by_id=1,
-            created_at=datetime.datetime.now(),
-            updated_by_id=1,
-            updated_at=datetime.datetime.now()  # Убедитесь, что вы добавили updated_at
+            name=name,
         )
         session.add(user)
         session.commit()
     except Exception as e:
         log.info(f"Данные не коретны. Ошибка {e}")
+
+
+def mute_bot(session: Session, user_id: int):
+    user: VKUser = session.execute(
+        select(VKUser)
+        .filter(VKUser.vk_id == user_id)
+        ).scalars().one_or_none()
+    user.muth = True
+    
+    session.add(user)
+    session.commit()
+
+
+def unmute_bot(session: Session, user_id: int):
+    log.info(user_id)
+    user: VKUser = session.execute(
+        select(VKUser)
+        .filter(VKUser.vk_id == user_id)
+        ).scalars().one_or_none()
+    log.info(user)
+    user.muth = False
+    
+    session.add(user)
+    session.commit()
+    
+
+def add_number(session: Session ,user_id: int, number: int):
+    try:
+        user_number = VKUserNumber(
+            id_user=user_id,
+            number=number,
+        )
+        session.add(user_number)
+        session.commit()
+    except Exception as e:
+        log.info(f"Данные не коретны. Ошибка {e}")
+
+
+def get_user_number(session: Session, number: int):
+    try:
+        user_number = session.execute(
+            select(VKUserNumber.number)
+            .filter(VKUserNumber.number == number)
+            ).scalars().one_or_none()
+        
+        return user_number
+    except Exception as e:
+        log.info(f"Данные не коретны. Ошибка {e}")
+
+
+def is_mute_bot(session: Session ,user_id: int) -> bool:
+    is_muth = session.execute(
+        select(VKUser.muth)
+        .filter(VKUser.vk_id == user_id)
+        ).scalars().one_or_none()
+    
+
+    
+    return is_muth
 

@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import Integer, Column, TIMESTAMP, func, Boolean
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy import Integer, Column, TIMESTAMP, func, Boolean, ForeignKey, UniqueConstraint, BigInteger, String
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
@@ -9,17 +9,24 @@ class Base(DeclarativeBase):
 
 
 class VKUser(Base):
-    __tablename__ = 'vk_unsubscribes'
+    __tablename__ = 'vk_users'
 
-    vk_id = Column(Integer)
-    created_at = Column(TIMESTAMP, default=datetime.now, server_default=func.now())
-    updated_at = Column(TIMESTAMP, onupdate=datetime.now)
-    created_by_id = Column(Integer)
-    updated_by_id = Column(Integer)
+    vk_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, unique=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, server_default=func.now())
+    muth: Mapped[bool] = mapped_column(Boolean, default=False)
+
 
 class VKUserPromocode(Base):
     __tablename__ = "vk_user_promocode"
 
-    vk_id = Column(Integer)
-    promocode = Column(Boolean)
+    vk_id: Mapped[int] = mapped_column(ForeignKey("vk_users.vk_id"), primary_key=True)
+    promocode: Mapped[bool] = mapped_column(Boolean)
 
+
+class VKUserNumber(Base):
+    __tablename__ = "vk_user_numbres"
+    
+    id_user: Mapped[int] = mapped_column(ForeignKey("vk_users.vk_id"), primary_key=True)
+    number: Mapped[int] = mapped_column(BigInteger, nullable=False, primary_key=True, unique=True)
+    

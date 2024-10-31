@@ -14,13 +14,18 @@ load_dotenv(dotenv_path="../.env")
 
 from config import config
 from database.querys import (
-    del_user_table,
     get_user_table,
     add_user_table,
     get_user_table_promocode,
     add_user_table_promocode,
+    add_number,
+    mute_bot,
+    unmute_bot,
+    is_mute_bot,
+    get_user_number
 )
 from database.engine import session
+from utils.valid_phone_number import is_valid_phone_number
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 log = logging.getLogger(__name__)
@@ -63,7 +68,7 @@ def is_spam(user_id):
     user_message_log[user_id].append(current_time)
 
     user_message_log[user_id] = [t for t in user_message_log[user_id] if
-                                 current_time - t <= config.message_settings.TIME_LIMIT]
+                                current_time - t <= config.message_settings.TIME_LIMIT]
     if len(user_message_log[user_id]) > config.message_settings.MESSAGE_LIMIT:
         user_ban_log[user_id] = current_time
         return True
@@ -94,24 +99,29 @@ def main():
             message = event.text.lower()
             if message == '+':
                 with session() as session_:
-                    if not get_user_table_promocode(session=session_, user_id=user_id):
+                    if get_user_table(session=session_, user_id=user_id) is None:
+                        add_user_table(session=session_, user_id=user_id, name=get_user_name(event.user_id))
+                    if get_user_table_promocode(session=session_, user_id=user_id) is None:
                         add_user_table_promocode(session=session_, user_id=user_id)
-                        promo_message = f"Привет, {get_user_name(event.user_id)}! Твой промокод на 200рублей ‘БогданКодер’, активируй его в мобильном приложении CyberApp"
+                        promo_message = f"Привет, {get_user_name(event.user_id)}!\n" \
+                        "Твой промокод на 200рублей ‘БогданКодер’, активируй его в мобильном приложении CyberApp"
                     else:
                         promo_message = f"{get_user_name(event.user_id)}, ты уже получил промокод!"
                 send_message(user_id, promo_message)
 
             if message == "подписаться":
                 with session() as session_:
-                    del_user_table(session=session_, user_id=user_id)
+                    if get_user_table(session=session_, user_id=user_id) is None:
+                        add_user_table(session=session_, user_id=user_id, name=get_user_name(event.user_id))
+                    unmute_bot(session=session_, user_id=user_id)
                     send_message(user_id, "Вы успешно подписались на рассылку!")
             elif message == "отписаться" or message == "отписка":
                 with session() as session_:
-                    if not get_user_table(session=session_, user_id=user_id):
+                    if is_mute_bot(session=session_, user_id=user_id) == False:
                         confirmation[user_id] = True
                         send_message(
                             user_id,
-                            "Вы уверены, что хотите отписаться (Да/Нет)?",
+                            "Вы уверены, что хотите отписаться?",
                             keyboard=create_confirmation_keyboard()
                         )
                     else:
@@ -119,12 +129,27 @@ def main():
             elif user_id in confirmation:
                 if message == "да":
                     with session() as session_:
-                        add_user_table(session=session_, user_id=user_id)
+                        mute_bot(session=session_, user_id=user_id)
                         send_message(user_id, "Вы успешно отписались от рассылки!")
 
                         confirmation.pop(user_id)
                 elif message == "нет":
                     send_message(user_id, "Ваша подписка на рассылку сохраняется!")
+            
+            if message == "получить":
+                with session() as session_:
+                    if get_user_table(session=session_, user_id=user_id) is None:
+                        add_user_table(session=session_, user_id=user_id, name=get_user_name(event.user_id))
+                send_message(user_id, "Поделитесь своим номером телефона в формате - 79991112233")
+            elif is_valid_phone_number(message):
+                with session() as session_:
+                    if get_user_number(session=session_, number=int(message)) is None:
+                        add_number(session=session_, user_id=user_id, number=int(message))
+                        send_message(user_id, "Мы запомнили ваш номер телефона!")
+                    else:
+                        send_message(user_id, "Вы уже ввели этот номер телефона.")
+            elif message.isdigit() and (len(message) >= 7 and len(message)<=10):
+                send_message(user_id, "Формат вашего номера не верный!")
 
 
 if __name__ == "__main__":
