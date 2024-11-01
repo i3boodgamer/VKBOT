@@ -90,6 +90,8 @@ def send_broadcast_message(user_ids, photo_path: str):
                         log.info(f"Cообщение отправлено пользоателя, {user_id}")
                     else:
                         log.info(f"Пользователя {user_id} не подходит под условие")
+                else:
+                    log.info(f"Пользователя {user_id} заблокировал бота")
         except vk_api.exceptions.ApiError as e:
             log.info(f"Ошибка при отправке пользователю {user_id}: {e}")
 
