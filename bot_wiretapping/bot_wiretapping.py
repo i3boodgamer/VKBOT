@@ -151,10 +151,11 @@ def main():
                             user_id,
                             "На Ваш баланс уже зачислено 300р."
                         )
-            elif is_valid_phone_number(message):
+            elif is_valid_phone_number(message) is not None:
                 with session() as session_:
-                    if get_user_number(session=session_, user_id=user_id, number=int(message)) is None:
-                        add_number(session=session_, user_id=user_id, number=int(message))
+                    number_user = int(is_valid_phone_number(message))
+                    if get_user_number(session=session_, user_id=user_id, number=number_user) is None:
+                        add_number(session=session_, user_id=user_id, number=number_user)
                         send_message(
                             user_id, 
                             "На ваш баланс начислено 300р! Следи за новостями в группе чтобы не пропустить дату открытия!",
