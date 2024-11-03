@@ -8,7 +8,8 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Установите зависимости
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --default-timeout=100 --no-cache-dir -r requirements.txt
+
 
 # Скопируйте весь код приложения
 COPY . .
