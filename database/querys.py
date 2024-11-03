@@ -3,7 +3,7 @@ import logging
 from sqlalchemy import select, or_
 from sqlalchemy.orm import Session
 
-from .models import VKUser, VKUserPromocode, VKUserNumber
+from .models import VKUser, VKUserPromocode, VKUserNumber, VKLastMessage
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -129,3 +129,40 @@ def is_mute_bot(session: Session ,user_id: int) -> bool:
     except Exception as e:
         log.error(f"Ошбика при запросе {e}")
 
+
+def get_last_message(session: Session, user_id: int):
+    try:
+        message = session.execute(
+            select(VKLastMessage.id_user)
+            .filter(VKLastMessage.id_user == user_id)
+            ).scalars().one_or_none()
+
+        return message
+    except Exception as e:
+        log.error(f"Ошбика при запросе {e}")
+
+
+def del_last_message(session: Session, user_id: int):
+    try:
+        message_delete = session.execute(
+            select(VKLastMessage)
+            .filter(VKLastMessage.id_user == user_id)
+            ).scalars().one_or_none()
+        
+        if message_delete is not None:
+            session.delete(message_delete)
+            session.commit()
+    except Exception as e:
+        log.error(f"Ошбика при удалении сообщения {e}")
+
+
+def put_last_message(session: Session, user_id: int, message_user: str):
+    try:
+        message = VKLastMessage(
+            id_user = user_id,
+            message = message_user,
+        )
+        session.add(message)
+        session.commit()
+    except Exception as e:
+        log.error(f"Ошибка при заполнении таблицы с соообщением {e}")

@@ -23,6 +23,9 @@ from database.querys import (
     unmute_bot,
     is_mute_bot,
     get_user_number,
+    get_last_message,
+    del_last_message,
+    put_last_message,
 )
 from database.engine import session
 from utils.valid_phone_number import is_valid_phone_number
@@ -141,6 +144,7 @@ def main():
                     if get_user_number(session=session_, user_id=user_id) is None:
                         if get_user_table(session=session_, user_id=user_id) is None:
                             add_user_table(session=session_, user_id=user_id, name=get_user_name(event.user_id))
+                        put_last_message(session=session_, user_id=user_id, message_user=message)
                         send_message(
                             user_id, 
                             f"Привет, {get_user_name(event.user_id)}! Для начисления депозита"
@@ -153,18 +157,21 @@ def main():
                         )
             elif is_valid_phone_number(message) is not None:
                 with session() as session_:
-                    number_user = int(is_valid_phone_number(message))
-                    if get_user_number(session=session_, user_id=user_id, number=number_user) is None:
-                        add_number(session=session_, user_id=user_id, number=number_user)
-                        send_message(
-                            user_id, 
-                            "На ваш баланс начислено 300р! Следи за новостями в группе чтобы не пропустить дату открытия!",
-                        )
-                    else:
-                        send_message(
-                            user_id, 
-                            "На Ваш баланс уже зачислено 300р.",
-                        )
+                    if get_last_message(session=session_, user_id=user_id) is not None:
+                        del_last_message(session=session_, user_id=user_id)
+                        
+                        number_user = int(is_valid_phone_number(message))
+                        if get_user_number(session=session_, user_id=user_id, number=number_user) is None:
+                            add_number(session=session_, user_id=user_id, number=number_user)
+                            send_message(
+                                user_id, 
+                                "На ваш баланс начислено 300р! Следи за новостями в группе чтобы не пропустить дату открытия!",
+                            )
+                        else:
+                            send_message(
+                                user_id, 
+                                "На Ваш баланс уже зачислено 300р.",
+                            )
             elif message.isdigit() and (len(message) >= 7 and len(message)<=10):
                 send_message(user_id, "Не верный формат номера телефона!")
 
