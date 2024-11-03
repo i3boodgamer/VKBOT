@@ -14,5 +14,5 @@ parent_dir = Path(__file__).resolve().parent.parent
 from config import config
 
 
-engine = create_engine(url=config.db_url, echo=False)
+engine = create_engine(url=config.db_url, echo=False, pool_size=10, max_overflow=20)
 session = sessionmaker(bind=engine, expire_on_commit=False)
