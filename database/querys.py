@@ -1,4 +1,3 @@
-import datetime
 import logging
 
 from sqlalchemy import select, or_
@@ -12,19 +11,26 @@ log = logging.getLogger(__name__)
 
 
 def get_user_table(session: Session, user_id: int) -> int:
-    stmt = session.execute(
-        select(VKUser.vk_id)
-        .where(VKUser.vk_id == user_id)
-    )
-    return stmt.scalars().one_or_none()
+    try:
+        stmt = session.execute(
+            select(VKUser.vk_id)
+            .where(VKUser.vk_id == user_id)
+        )
+        
+        return stmt.scalars().one_or_none()
+    except Exception as e:
+        log.error(f"Ошибка при запросе: {e}")
 
 
 def get_user_table_promocode(session: Session, user_id: int) -> int:
-    stmt = session.execute(
-        select(VKUserPromocode.vk_id)
-        .where(VKUserPromocode.vk_id == user_id)
-    )
-    return stmt.scalars().one_or_none()
+    try:
+        stmt = session.execute(
+            select(VKUserPromocode.vk_id)
+            .where(VKUserPromocode.vk_id == user_id)
+        )
+        return stmt.scalars().one_or_none()
+    except Exception as e:
+        log.error(f"Ошибка при запросе: {e}")
 
 
 def add_user_table_promocode(session: Session, user_id: int):
@@ -60,27 +66,32 @@ def add_user_table(session: Session, user_id, name: str):
 
 
 def mute_bot(session: Session, user_id: int):
-    user: VKUser = session.execute(
-        select(VKUser)
-        .filter(VKUser.vk_id == user_id)
-        ).scalars().one_or_none()
-    user.muth = True
-    
-    session.add(user)
-    session.commit()
+    try:
+        user: VKUser = session.execute(
+            select(VKUser)
+            .filter(VKUser.vk_id == user_id)
+            ).scalars().one_or_none()
+        user.muth = True
+        
+        session.add(user)
+        session.commit()
+    except Exception as e:
+        log.error(f"Ошибка при коммите {e}")
 
 
 def unmute_bot(session: Session, user_id: int):
-    log.info(user_id)
-    user: VKUser = session.execute(
-        select(VKUser)
-        .filter(VKUser.vk_id == user_id)
-        ).scalars().one_or_none()
-    log.info(user)
-    user.muth = False
-    
-    session.add(user)
-    session.commit()
+    try:
+        user: VKUser = session.execute(
+            select(VKUser)
+            .filter(VKUser.vk_id == user_id)
+            ).scalars().one_or_none()
+        log.info(user)
+        user.muth = False
+        
+        session.add(user)
+        session.commit()
+    except Exception as e:
+        log.error(f"Ошибка при коммите {e}")
     
 
 def add_number(session: Session ,user_id: int, number: int):
@@ -108,12 +119,13 @@ def get_user_number(session: Session, user_id: int, number: int | None = None):
 
 
 def is_mute_bot(session: Session ,user_id: int) -> bool:
-    is_muth = session.execute(
-        select(VKUser.muth)
-        .filter(VKUser.vk_id == user_id)
-        ).scalars().one_or_none()
-    
-
-    
-    return is_muth
+    try:
+        is_muth = session.execute(
+            select(VKUser.muth)
+            .filter(VKUser.vk_id == user_id)
+            ).scalars().one_or_none()
+        
+        return is_muth
+    except Exception as e:
+        log.error(f"Ошбика при запросе {e}")
 
