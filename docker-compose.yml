@@ -4,7 +4,7 @@ services:
     container_name: bot_wiretapping
     environment:
       - ENV_FILE=.env
-    command: python bot_wiretapping/bot_wiretapping.py
+    command: python bot.py
     volumes:
       - .:/app
     depends_on:

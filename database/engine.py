@@ -1,18 +1,11 @@
-import sys
-import os
-import logging
-from dotenv import load_dotenv
 from pathlib import Path
 
-from sqlalchemy import create_engine, MetaData, Table
-from sqlalchemy.orm import sessionmaker
-
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
 
 parent_dir = Path(__file__).resolve().parent.parent
 
+from config import settings
 
-from config import config
 
-
-engine = create_engine(url=config.db_url, echo=False, pool_size=10, max_overflow=20)
-session = sessionmaker(bind=engine, expire_on_commit=False)
+engine = create_async_engine(url=settings.db_url, echo=False, pool_size=10, max_overflow=20)
+async_session = async_sessionmaker(bind=engine, expire_on_commit=False, class_=AsyncSession)

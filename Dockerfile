@@ -15,4 +15,4 @@ RUN pip install --default-timeout=100 --no-cache-dir -r requirements.txt
 COPY . .
 
 # Укажите, какой файл следует запустить (по желанию)
-CMD ["python", "bot_mailing/bot_mailing.py"]
+CMD ["python", "bot.py"]

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings
-
+from vkbottle.bot import BotLabeler
 
 class MessageSettings(BaseModel):
     MESSAGE_LIMIT: int = 5
@@ -22,9 +22,9 @@ class Config(BaseSettings):
 
     @property
     def db_url(self) -> str:
-        return f"postgresql+psycopg2://{config.DATABASE_USERNAME}:{config.DATABASE_PASSWORD}@{config.DATABASE_HOST}:{config.DATABASE_PORT}/{config.DATABASE_NAME}"
+        return f"postgresql+asyncpg://{self.DATABASE_USERNAME}:{self.DATABASE_PASSWORD}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
 
     message_settings: MessageSettings = MessageSettings()
 
 
-config = Config()
+settings = Config()
