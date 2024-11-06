@@ -6,6 +6,7 @@ from vkbottle.bot import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from middleware.session import DataBaseSession
+from middleware.low_message import MessageLowRegister
 from config import settings
 from database.querys import (
     get_user_table,
@@ -51,14 +52,13 @@ async def answer(message: Message, session: AsyncSession):
 
 
 
-@bot.on.message(text=["Получить", "получить"])
+@bot.on.message(text=["получить", "бонус300"])
 async def answer(message: Message, session: AsyncSession):
     name_users = (await bot.api.users.get(user_ids=message.from_id))[0].first_name
-    
     if await get_user_number(session=session, user_id=message.from_id) is None:
         if await get_user_table(session=session, user_id=message.from_id) is None:
             await add_user_table(session=session, user_id=message.from_id, name=name_users)
-
+    
         await message.answer(f"Привет, {name_users}! Для начисления депозита"
                         " поделись своим номером телефона в формате 799911112233, это будет твой логин в клубе!\n\n")
         await bot.state_dispenser.set(message.peer_id, SuperStates.NUMBER)
@@ -87,7 +87,7 @@ async def name_handler(message: Message, session: AsyncSession):
     await session.close()
     
     
-@bot.on.message(text=["подписаться", "Подписаться"])
+@bot.on.message(text=["подписаться"])
 async def unmut_bot(message: Message, session: AsyncSession):
     name_users = (await bot.api.users.get(user_ids=message.from_id))[0].first_name
     
@@ -99,7 +99,7 @@ async def unmut_bot(message: Message, session: AsyncSession):
     await session.close()
 
 
-@bot.on.message(text=["Отписаться", "отписаться"])
+@bot.on.message(text=["отписаться"])
 async def unmut_bot(message: Message, session: AsyncSession):
     if await is_mute_bot(session=session, user_id=message.from_id) == False:
         name_users = (await bot.api.users.get(user_ids=message.from_id))[0].first_name
@@ -115,4 +115,5 @@ async def unmut_bot(message: Message, session: AsyncSession):
     
 if __name__ == "__main__":
     bot.labeler.message_view.register_middleware(DataBaseSession)
+    bot.labeler.message_view.register_middleware(MessageLowRegister)
     bot.run_forever()
