@@ -1,0 +1,13 @@
+[tool.poetry]
+package-mode=false
+
+[tool.poetry.dependencies]
+python="^3.11.9"
+vkbottle = "^4.4.2"
+sqlalchemy = "^2.0.36"
+alembic = "^1.13.3"
+black = "^24.10.0"
+asyncio = "^3.4.3"
+pydantic = "^2.9.2"
+pydantic-settings = "^2.6.1"
+asyncpg = "^0.30.0"
